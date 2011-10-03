@@ -172,7 +172,6 @@
             context.rotate(Math.PI / (footPos * swivel));
             if (legBend) {
                 context.save();
-                //context.translate(0, 0);
                 context.lineTo((swivel * legLength) / 1.5, bodyHeight);
                 context.stroke();
                 context.restore();
