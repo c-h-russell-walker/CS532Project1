@@ -54,6 +54,18 @@
             kin.startAnimation();
         }
 
+        function cartesianToPolar(x, y) {
+            var length = Math.sqrt((x * x) + (y * y));
+            var angle = Math.atan(y / x);
+            return (x, y);
+        }
+
+        function polarToCartesian(length, theta) {
+            var x = Math.cos(theta)*length;
+            var y = Math.sin(theta) * length;
+            return (length, theta);
+        }
+
         function run() {            
             // save state 1 - then move to middle of canvas
             context.save();
@@ -112,6 +124,34 @@
 
             context.restore();
         }
+        /**** Stick Figure Objects ****/
+        function stickFigure() {
+            this.body = new body();
+            this.head = new head();
+            this.leftArm = new arm();
+            this.rightArm = new arm();
+            this.leftLeg = new leg();
+            this.rightLeg = new leg();
+        }
+        function body() {
+
+        }
+        function head() {
+
+        }
+        function arm() {
+
+        }
+        function hand() {
+
+        }
+        function leg() {
+
+        }
+        function foot() {
+
+        }
+
         /**** START FIGURE DRAWING ****/
         function drawFigure() {
             drawBody();
