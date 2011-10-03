@@ -1,0 +1,246 @@
+﻿<!DOCTYPE HTML> 
+<html>
+    <head>
+    <title>Hwk 1</title>
+    <link rel="stylesheet" href="stick.css" type="text/css"/>
+    <script src="http://www.html5canvastutorials.com/libraries/kinetic2d-v1.0.2.js"></script>
+    <!-- <script src="file:///C:/Users/CHRW/Desktop/CS532%20CompGrph/Hwk1-Example/kinetic2d-v1.0.2.js"></script> -->
+    <!--
+    - Maintain coherent stick figures; no grossly overlapping segments or similar bugs.
+    - Use at least 3 different coordinate systems. Cartesian, Polar, Spherical?-3D
+    - Show at least 50 frames of unique (not counting loops) animation.
+    - Address “action items” in reading.
+    - Be ready to answer questions about your code as well as modify it in class.
+    -->
+    <script>
+        var kin;
+        var bodyCenterX = 0;
+        var bodyCenterY = -40;
+        var bodyWidth = 10;
+        var bodyHeight = 160;
+        var legLength = 170;
+        var armLength = 90;
+        var footPos = 5;
+        var armPos = 4;
+        var legBend = false;
+        var armBend = false;
+        var floorHeight = 50;
+        var oscillate = false;
+        var swivel = -1;
+        var jumpJackArms = false;
+
+        function init() {
+            canvas = document.getElementById("stickScene");
+            context = canvas.getContext("2d");
+
+            floorHeight = canvas.height / 2;
+
+            document.addEventListener('mousedown', mouseClickHandler, false);
+
+            kin = new Kinetic_2d("stickScene");
+
+            kin.setDrawStage(function () {
+                kin.clear();
+
+                var context = kin.getContext();
+                context.lineWidth = "2";
+
+                run();
+            });
+        }
+
+        function mouseClickHandler(event) {
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+            kin.startAnimation();
+        }
+
+        function run() {            
+            // save state 1 - then move to middle of canvas
+            context.save();
+
+            context.fillText(kin.frame.toString(), 10, 10);
+            context.translate(canvas.width / 2, floorHeight);
+
+            if (kin.frame != 0 && kin.frame < 300) {
+                if (kin.frame % 6 == 0) {
+                    jumpingJacks();
+                }
+                switch (kin.frame%20) {
+                case 0,1,2,3,4,5,6,7,8,9:
+                    floorHeight = floorHeight + 4;
+                    armBend = false;
+                    footPos = 4;
+                    jumpJackArms = false;
+                    break;
+                case 10,11,12,13,14,15,16,17,18,19:
+                    floorHeight = floorHeight - 4;
+                    armBend = true;
+                    jumpJackArms = true;
+                    footPos = 5;
+                    break;
+                }
+                drawFigure();
+                armBend = false;
+            }
+            if (kin.frame >= 300 && kin.frame < 850) {
+                jumpJackArms = false;
+                if (kin.frame % 6 == 0) {
+                    footPos = 5.5;
+                    guyWalks();
+                }
+                if (kin.frame >= 450 && kin.frame < 550) {
+                    floorHeight = floorHeight - 1;
+                }
+                if (kin.frame >= 550 && kin.frame < 650) {
+                    floorHeight = floorHeight + 1;
+                    jumpJackArms = true;
+                    switch (kin.frame%20) {
+                        case 0,1,2,3,4,5,6,7,8,9:
+                            jumpJackArms = true;
+                            break;
+                    }
+                }
+                drawFigure();
+            }
+            if (kin.frame >= 850) {
+                kin.stopAnimation();
+                drawFigure();
+                kin.frame = 0;
+            } else if (kin.frame == 0) {
+                drawFigure();
+            }
+
+            context.restore();
+        }
+        /**** START FIGURE DRAWING ****/
+        function drawFigure() {
+            drawBody();
+            drawHead();
+            drawLeg(1);
+            drawLeg(swivel); // left swivel = -1
+            if (!jumpJackArms) {
+                drawArm(1);
+                drawArm(swivel); // left swivel = -1
+            } else {
+                drawBentArms();
+            }
+            context.restore();
+            context.save();
+        }
+        function drawArm(swivel) {
+            context.save();
+            context.translate(0, 0);
+            context.moveTo(bodyCenterX, -bodyCenterY);
+            context.rotate(Math.PI / (armPos * swivel));
+            if (armBend) {
+                context.lineTo((swivel * armLength) / 1.5, (-bodyCenterY / 2)+1);
+                if (swivel == -1)
+                    context.rotate(Math.PI/(armPos * swivel));
+                drawHand(swivel * armLength);
+            } else {
+                context.lineTo(swivel * armLength, -bodyCenterY / 2);
+            }
+            context.stroke();
+            context.restore();
+        }
+        function drawHand(handLength) {
+            // x, y, width, height
+            context.fillRect((handLength / 1.5), (-bodyCenterY / 2), 2, (swivel * armLength/2));
+        }
+        function drawBentArms() {
+            context.save();
+            context.translate(0, 0);
+            context.moveTo(bodyCenterX, -bodyCenterY);
+            context.rotate(Math.PI / (armPos * swivel));
+            context.lineTo((swivel * armLength) / 1.5, -bodyCenterY / 2);
+            drawHand(swivel * armLength);
+            context.stroke();
+            context.restore();
+            context.save();
+            context.translate(0, 0);
+            context.moveTo(bodyCenterX, -bodyCenterY);
+            context.rotate(Math.PI / (armPos * -swivel));
+            context.lineTo(-(swivel * armLength) / 1.5, -bodyCenterY / 2);
+            drawHand(-swivel * armLength);
+            context.stroke();
+            context.restore();
+        }
+        function drawLeg(swivel) {
+            context.save();
+            context.translate(0, 0);
+            context.moveTo(bodyCenterX, bodyHeight);
+            context.rotate(Math.PI / (footPos * swivel));
+            if (legBend) {
+                context.save();
+                //context.translate(0, 0);
+                context.lineTo((swivel * legLength) / 1.5, bodyHeight);
+                context.stroke();
+                context.restore();
+                drawFoot(swivel);
+            } else {
+                context.lineTo(swivel * legLength, bodyHeight);
+            }
+            context.stroke();
+            context.restore();
+        }
+        function drawFoot(swivel) {
+            context.save();
+            context.translate(0, 0);
+            //context.rotate((Math.PI) / 0.666);
+            //context.lineTo((swivel * legLength), legLength / 333);
+            context.fillRect((swivel * legLength) / 1.5, bodyHeight, 2, 30*swivel);
+            context.stroke();
+            context.restore();
+        }
+        function drawBody() {
+            context.save();
+            context.moveTo(bodyCenterX, bodyCenterY);
+            context.lineTo(bodyCenterX, bodyHeight);
+            context.stroke();
+            context.restore();
+        }
+        function drawHead() {
+            // var radians = degrees * Math.PI / 180;
+            // Math.PI = 180 degrees
+            context.save();
+            kin.beginRegion();
+            if (oscillate) {
+                context.fillStyle = "Red";
+                context.lineWidth = "4";
+                //context.rotate(swivel * Math.PI / 90);
+            }
+            context.beginPath();
+            kin.addRegionEventListener("mouseover", function () { oscillate = true; });
+            kin.addRegionEventListener("mouseout", function () { oscillate = false; });
+            var radius = 50;
+            // x, y, radius, start-angle, end-angle
+            // context.arc(0,0,5,0,2*Math.PI);
+            context.arc(0, -radius, radius, 0, 2 * Math.PI);
+            context.fillStyle = "Blue";
+            context.fill();
+            context.closePath();
+            context.stroke();
+            kin.closeRegion();
+            context.restore();
+        }
+        /**** END FIGURE DRAWING ****/
+
+        function jumpingJacks() {
+            /*legBend = false;
+            armBend = false;*/
+        }
+        function guyWalks() {
+            legBend = !legBend;
+            armBend = !armBend;
+        }
+
+        window.onload = function () {
+            init();
+        };
+        </script> 
+    </head> 
+    <body onmousedown="return false;">
+        <canvas id="stickScene" width="960" height="640"></canvas> 
+    </body>
+</html>
