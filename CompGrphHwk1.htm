@@ -15,14 +15,16 @@
     <script>
         var kin;
         var figure;
+        var armAngle = 10;
+        var legAngle = -60
 
         var bodyX = 0;
         var bodyY = 40;
         var headSize = 50;
-        //var bodyWidth = 10;
         var bodyHeight = 200;
-        var legLength = 170;
-        var armLength = 90;
+        var legLength = 120;
+        var armLength = 80;
+
         var footPos = 5;
         var armPos = 4;
         var legBend = false;
@@ -66,16 +68,14 @@
         }
 
         function run() {
-            context.save();
-
             context.fillText(kin.frame.toString(), 10, 10);
-            context.translate(canvas.width / 2, floorHeight);
-            
-            figure = new stickFigure();
 
+            figure = new stickFigure();
+            /*
             if (kin.frame != 0 && kin.frame < 300) {
+                armAngle = armAngle + kin.frame % 45;
                 jumpingJacks();
-            }
+            }*/
             
             figure.draw();
             /*
@@ -128,7 +128,7 @@
                 drawFigure();
             }
             */
-            context.restore();
+            //context.restore();
         }
         /**** Stick Figure Objects ****/
         function stickFigure() {
@@ -158,17 +158,12 @@
             this.y = y;
             this.length = armLength / 2;
             this.left = left;
-            console.log(this.x);
-            console.log(this.y);
-            console.log(this.length);
-            console.log(left);
             this.bicep = new bicep(this.x, this.y, this.length);
-            if (left) {
+            this.forearm = new forearm(this.x + Math.abs(this.length), this.y, this.length);
+            /*if (left) {
                 this.forearm = new forearm(-this.x + this.length, this.y, this.length);
             } else
-                this.forearm = new forearm(this.x + this.length, this.y, this.length);
-            console.log(this.bicep);
-            console.log(this.forearm);
+                this.forearm = new forearm(this.x + this.length, this.y, this.length);*/
         }
         function leg(x, y, legLength) {
             this.x = x;
@@ -180,14 +175,12 @@
         function bicep(x, y, length) {
             this.draw = drawBicep;
             this.x = x;
-            console.log(this.x);
             this.y = y;
             this.length = length;
         }
         function forearm(x, y, length) {
             this.draw = drawForearm;
             this.x = x;
-            console.log(this.x)
             this.y = y;
             this.length = length;
         }
@@ -206,24 +199,53 @@
 
         /**** START FIGURE DRAWING ****/
         function drawFigure() {
+            context.save(); // State 1
+            context.translate(canvas.width / 2, floorHeight);
             this.body.draw();
             this.head.draw();
-            //this.leftArm.bicep.draw(5);
-            //this.leftArm.forearm.draw(40);
-            this.rightArm.bicep.draw(45);
-            //this.rightArm.forearm.draw(-40);
-            //this.leftLeg.thigh.draw();
-            //this.leftLeg.calf.draw();
-            //this.rightLeg.calf.draw();
-            //this.rightLeg.thigh.draw();
+            
+            context.save(); // State 2.1
+            //LEFT ARM translate, etc
+            context.translate(0, bodyHeight / 2.6);
+            context.rotate(Math.PI / 180 * armAngle);
+            this.leftArm.bicep.draw();
+            this.leftArm.forearm.draw(armAngle/2);
+            context.restore(); // State 2.1
+            
+            context.save(); // State 2.2
+            // RIGHT ARM translate etc
+            context.translate(0, bodyHeight / 2.6);
+            armAngle = -armAngle;
+            context.rotate(Math.PI / 180 * armAngle);
+            this.rightArm.bicep.draw();
+            this.rightArm.forearm.draw(-armAngle/2);
+            context.restore(); // State 2.2
+            
+            context.save(); // State 3.1
+            // LEFT LEG translate, etc
+            context.translate(0, bodyHeight);
+            context.rotate(Math.PI / 180 * legAngle);
+            this.leftLeg.thigh.draw();
+            this.leftLeg.calf.draw(legAngle/2);
+            context.restore(); // State 3.1
+
+            context.save(); // State 3.2
+            // RIGHT LEG translate, etc
+            context.translate(0, bodyHeight);
+            context.rotate(Math.PI / 180 * -legAngle);
+            this.rightLeg.thigh.draw();
+            this.rightLeg.calf.draw(-legAngle/2);
+            context.restore(); // State 3.2
+
+            context.restore(); // State 1
         }
         function drawBody() {
-            context.save();
+            //context.save();
             context.moveTo(this.x, this.y);
             context.strokeStyle = "Red";
             context.lineTo(this.x, this.length);
             context.stroke();
-            context.restore();
+            //context.restore();
         }
         function drawHead() {
             context.save();
@@ -240,40 +262,49 @@
             kin.closeRegion();
             context.restore();
         }
-        function drawBicep(angle) {
-            context.save();
-            this.angle = angle;
-            context.translate(-this.x, this.y);
-            context.moveTo(-this.x, 0);
-            var polarCrds = cartesianToPolar(this.length, this.angle);
-            context.lineTo(polarCrds[0], polarCrds[1]);
-            //context.lineTo(this.length, this.y);
+        function drawBicep() {
+            context.moveTo(0, 0);
+            //context.arc(0, 0, 3, 0, 2 * Math.PI);
+            //var polarCrds = cartesianToPolar(this.length, this.angle);
+            //context.lineTo(polarCrds[0], polarCrds[1]);
+            context.lineTo(this.length, 0);
             context.stroke();
-            context.restore();
+            //context.restore();
         }
         function drawForearm(angle) {
             context.save();
             this.angle = angle;
-            //context.moveTo(this.x, this.y);
-            //context.rotate(Math.PI);
-            var polarCrds = cartesianToPolar(this.length, this.angle);
-            context.lineTo(polarCrds[0], polarCrds[1]);
+            context.translate(this.length, 0);
+            context.rotate(Math.PI / 180 * this.angle);
+            //context.moveTo(this.length, 0);
+            context.lineTo(this.length, 0);
+            //var polarCrds = cartesianToPolar(-2*this.length, this.angle);
+            //context.lineTo(polarCrds[0], polarCrds[1]);
             context.stroke();
             context.restore();
         }
         function drawThigh() {
-
+            context.moveTo(0, 0);
+            //context.arc(0, 0, 3, 0, 2 * Math.PI);
+            context.lineTo(this.length, 0);
+            context.stroke();
         }
-        function drawCalf() {
-
+        function drawCalf(angle) {
+            context.save();
+            this.angle = angle;
+            context.translate(this.length, 0);
+            context.rotate(Math.PI / 180 * this.angle);
+            context.lineTo(this.length, 0);
+            context.stroke();
+            context.restore();
         }
         function drawLeg() {
-            context.save();
+            //context.save();
             context.moveTo(this.x, this.y);
             context.lineTo(this.length, this.y);
             //context.rotate(Math.PI / (footPos * swivel));
             context.stroke();
-            context.restore();
+            //context.restore();
         }
         function drawFigureXXX() {
             drawBody();
