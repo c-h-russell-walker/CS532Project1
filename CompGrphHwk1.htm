@@ -10,13 +10,13 @@
     c.russell.walker@gmail.com
     BU CS532 Comp Graphics
     Project 1
-	Changing from my netbook with different git version
     -->
     <script>
         var kin;
         var figure;
         var armAngle = 10;
-        var legAngle = -60
+        var legAngle = -30;
+        var stroke = false;
 
         var bodyX = 0;
         var bodyY = 40;
@@ -44,8 +44,37 @@
                 kin.clear();
                 var context = kin.getContext();
                 context.lineWidth = "4";
+                drawWaves();
                 run();
             });
+        }
+        
+        function drawWaves() {
+            context.save();
+            context.moveTo(0, floorHeight);
+            // sine path from 0 to rads radians scales by sx
+            context.translate(-kin.frame *2, 0);
+            var N = canvas.width;
+            var dx=2*(Math.PI)/N;
+            var x=0;
+            var px = 0;
+            var py = floorHeight;
+            
+            context.beginPath();
+            context.strokeStyle = "Blue";
+           
+            for (var i=0;i<N*4;i++)
+            {
+                x += dx;
+                y = Math.sin(x);
+    
+                px += (180.0/(Math.PI))*dx;
+                py = - 30*y;
+    
+                context.lineTo(px-kin.frame, py + floorHeight);
+            }
+            context.stroke();
+            context.restore();
         }
 
         function mouseClickHandler(event) {
@@ -68,16 +97,29 @@
         }
 
         function run() {
+            
             context.fillText(kin.frame.toString(), 10, 10);
 
             figure = new stickFigure();
-            /*
-            if (kin.frame != 0 && kin.frame < 300) {
-                armAngle = armAngle + kin.frame % 45;
-                jumpingJacks();
-            }*/
             
+            if (kin.frame != 0 && kin.frame < 400) {
+                //if (legAngle >= -60 && legAngle < )
+                if (stroke)
+                    legAngle = -kin.frame % 65;
+                if (!stroke)
+                    legAngle = legAngle + 1;
+                if (kin.frame % 65 == 0)
+                    stroke = !stroke;
+                if (legAngle == 0)
+                    stroke = !stroke;
+                
+                armAngle = kin.frame;
+            }
+            if (kin.frame >= 400) {
+                kin.frame = 1;
+            }
             figure.draw();
+            
             /*
             if (kin.frame != 0 && kin.frame < 300) {
                 if (kin.frame % 6 == 0) {
@@ -201,6 +243,7 @@
         function drawFigure() {
             context.save(); // State 1
             context.translate(canvas.width / 2, floorHeight);
+            context.rotate(Math.PI/2)
             this.body.draw();
             this.head.draw();
             
@@ -210,15 +253,16 @@
             context.rotate(Math.PI / 180 * armAngle);
             this.leftArm.bicep.draw();
             this.leftArm.forearm.draw(armAngle/2);
-            context.restore(); // State 2.1
+            //context.restore(); // State 2.1
             
-            context.save(); // State 2.2
+            //context.save(); // State 2.2
             // RIGHT ARM translate etc
-            context.translate(0, bodyHeight / 2.6);
+            //context.translate(0, bodyHeight / 2.6);
             armAngle = -armAngle;
-            context.rotate(Math.PI / 180 * armAngle);
+            
+            context.rotate(Math.PI / 180 * -armAngle);
             this.rightArm.bicep.draw();
-            this.rightArm.forearm.draw(-armAngle/2);
+            this.rightArm.forearm.draw(armAngle/2);
             context.restore(); // State 2.2
             
             context.save(); // State 3.1
@@ -240,12 +284,12 @@
             context.restore(); // State 1
         }
         function drawBody() {
-            //context.save();
+            context.save();
             context.moveTo(this.x, this.y);
-            context.strokeStyle = "Red";
+            context.strokeStyle = "Grey";
             context.lineTo(this.x, this.length);
             context.stroke();
-            //context.restore();
+            context.restore();
         }
         function drawHead() {
             context.save();
@@ -298,7 +342,7 @@
             context.stroke();
             context.restore();
         }
-        function drawLeg() {
+        function drawLegXXX() {
             //context.save();
             context.moveTo(this.x, this.y);
             context.lineTo(this.length, this.y);
@@ -336,11 +380,11 @@
             context.stroke();
             context.restore();
         }
-        function drawHand(handLength) {
+        function drawHandxxx(handLength) {
             // x, y, width, height
             context.fillRect((handLength / 1.5), (-bodyCenterY / 2), 2, (swivel * armLength/2));
         }
-        function drawBentArms() {
+        function drawBentArmsxxx() {
             context.save();
             context.translate(0, 0);
             context.moveTo(bodyCenterX, -bodyCenterY);
@@ -375,7 +419,7 @@
             context.stroke();
             context.restore();
         }
-        function drawFoot(swivel) {
+        function drawFootxxx(swivel) {
             context.save();
             context.translate(0, 0);
             //context.rotate((Math.PI) / 0.666);
