@@ -112,15 +112,23 @@
             }
             
             if (kin.frame != 0 && kin.frame < 400) {
-                if (stroke)
+                var amplitude = 50;
+                //var centerX = 0;
+                var period = 20000; // in ms
+                var nextAngle = amplitude *
+                Math.sin(kin.getTime() * 2 * Math.PI / period) +
+                legAngle;
+                legAngle = nextAngle;
+                
+                /*if (stroke)
                     legAngle = -kin.frame % 65;
                 if (!stroke)
-                    legAngle = legAngle + 1;
+                    legAngle = legAngle + 1;                
                 if (kin.frame % 65 == 0)
                     stroke = !stroke;
                 if (legAngle == 0)
                     stroke = !stroke;
-                
+                */
                 armAngle = kin.frame;
             }
             if (kin.frame >= 400) {
@@ -262,7 +270,7 @@
         }
         function drawForearm(angle) {
             context.save();
-            this.angle = angle;
+            this.angle = angle % 90;
             context.translate(this.length, 0);
             context.rotate(Math.PI / 180 * this.angle);
             context.lineTo(this.length, 0);
