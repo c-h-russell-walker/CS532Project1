@@ -1,4 +1,4 @@
-﻿<!DOCTYPE HTML> 
+﻿﻿<!DOCTYPE HTML> 
 <html>
     <head>
     <title>Hwk 1</title>
@@ -15,8 +15,8 @@
         var kin;
         var figure;
         var armAngle = 10;
-        var legAngle = -30;
-        var stroke = false;
+        var legAngle = 65;
+        var stroke = true;
         var bodyX = 0;
         var bodyY = 40;
         var headSize = 50;
@@ -33,37 +33,41 @@
             document.addEventListener('mousedown', mouseClickHandler, false);
             kin = new Kinetic_2d("stickScene");
             kin.setDrawStage(function () {
-                kin.clear();
                 var context = kin.getContext();
                 context.lineWidth = "4";
-                drawWaves();
+                kin.clear();
+                
                 run();
+                drawWaves();
             });
         }
-        
+
+        function degToRad(degrees) {
+            return degrees * Math.PI / 180;
+        }
+
         function drawWaves() {
             context.save();
             context.moveTo(0, swimHeight);
+            
             // sine path from 0 to rads radians scales by sx
-            context.translate(-kin.frame *2, 0);
+            context.translate(-kin.frame * 2, 0);
             var N = canvas.width;
-            var dx=2*(Math.PI)/N;
-            var x=0;
+            var dx = 2 * (Math.PI) / N;
+            var x = 0;
             var px = 0;
             var py = waveHeight;
-            
+
             context.beginPath();
             context.strokeStyle = "Blue";
-           
-            for (var i=0;i<N*6;i++)
-            {
+
+            for (var i = 0; i < N * 6; i++) {
                 x += dx;
                 y = Math.sin(x);
-    
-                px += (180.0/(Math.PI))*dx;
-                py = - 30*y;
-    
-                context.lineTo(px-kin.frame, py + waveHeight*6.5);
+                px += (180.0 / (Math.PI)) * dx;
+                py = -30 * y  + (kin.frame % 2 * 3);
+
+                context.lineTo(px - kin.frame, py + waveHeight * 6.5);
             }
             context.stroke();
             context.restore();
@@ -83,25 +87,25 @@
         }
 
         function polarToCartesian(length, theta) {
-            var x = Math.cos(theta)*length;
+            var x = Math.cos(theta) * length;
             var y = Math.sin(theta) * length;
             return (length, theta);
         }
 
         function run() {
-            
-            context.fillText(kin.frame.toString(), 10, 10);
 
+            context.fillText(kin.frame.toString(), 10, 10);
+            context.lineJoin = 'miterLimit';
             figure = new stickFigure();
-            
-            switch (kin.frame%20) {
-                case 0,1,2,3,4,5,6,7,8,9:
+
+            switch (kin.frame % 20) {
+                case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
                     swimHeight = swimHeight + 2;
                     break;
-                case 10,11,12,13,14,15,16,17,18,19:
+                case 10, 11, 12, 13, 14, 15, 16, 17, 18, 19:
                     swimHeight = swimHeight - 2;
                     break;
-                }
+            }
             if (kin.frame >= 100 && kin.frame < 200) {
                 swimHeight = swimHeight + 1;
                 waveHeight = waveHeight - .25;
@@ -110,33 +114,23 @@
                 swimHeight = swimHeight - 1;
                 waveHeight = waveHeight + .25;
             }
-            
+
             if (kin.frame != 0 && kin.frame < 400) {
-                var amplitude = 50;
-                //var centerX = 0;
-                var period = 20000; // in ms
-                var nextAngle = amplitude *
-                Math.sin(kin.getTime() * 2 * Math.PI / period) +
-                legAngle;
-                legAngle = nextAngle;
-                
-                /*if (stroke)
-                    legAngle = -kin.frame % 65;
-                if (!stroke)
-                    legAngle = legAngle + 1;                
-                if (kin.frame % 65 == 0)
+                if (legAngle > 120 || legAngle < 65)
                     stroke = !stroke;
-                if (legAngle == 0)
-                    stroke = !stroke;
-                */
+                if (legAngle <= 120 && stroke)
+                    legAngle += 1;
+                if (legAngle >= 65 && !stroke)
+                    legAngle -= 1;
                 armAngle = kin.frame;
             }
             if (kin.frame >= 400) {
                 kin.frame = 1;
             }
+            
             figure.draw();
         }
-        
+
         /**** Stick Figure Objects ****/
         function stickFigure() {
             this.body = new body(bodyX, bodyY, bodyHeight);
@@ -204,46 +198,47 @@
         function drawFigure() {
             context.save(); // State 1
             context.translate(canvas.width / 2, swimHeight);
-            context.rotate(Math.PI/2)
+            context.rotate(Math.PI / 2)
             this.body.draw();
             this.head.draw();
-            
+
             context.save(); // State 2
             //LEFT ARM translate, etc
             context.translate(0, bodyHeight / 2.6);
             context.rotate(Math.PI / 180 * armAngle);
             this.leftArm.bicep.draw();
-            this.leftArm.forearm.draw(armAngle/2);
-            
+            this.leftArm.forearm.draw(armAngle / 2);
+
             // RIGHT ARM
             armAngle = -armAngle;
             context.rotate(Math.PI / 180 * -armAngle);
             this.rightArm.bicep.draw();
-            this.rightArm.forearm.draw(armAngle/2);
+            this.rightArm.forearm.draw(armAngle / 2);
             context.restore(); // State 2
-            
+
             context.save(); // State 3.1
             // LEFT LEG translate, etc
             context.translate(0, bodyHeight);
-            context.rotate(Math.PI / 180 * legAngle);
+
+            context.rotate(/*Math.PI / 180 */ degToRad(-legAngle));
             this.leftLeg.thigh.draw();
-            this.leftLeg.calf.draw(legAngle/2);
+            this.leftLeg.calf.draw(legAngle / 2);
             context.restore(); // State 3.1
 
             context.save(); // State 3.2
             // RIGHT LEG translate, etc
             context.translate(0, bodyHeight);
-            context.rotate(Math.PI / 180 * -legAngle);
+            context.rotate(/*Math.PI / 180 */ degToRad(legAngle));
             this.rightLeg.thigh.draw();
-            this.rightLeg.calf.draw(-legAngle/2);
+            this.rightLeg.calf.draw(legAngle / 2);
             context.restore(); // State 3.2
-
+            
             context.restore(); // State 1
         }
         function drawBody() {
             context.save();
             context.moveTo(this.x, this.y);
-            context.strokeStyle = "Grey";
+            context.strokeStyle = "Black";
             context.lineTo(this.x, this.length);
             context.stroke();
             context.restore();
@@ -252,7 +247,7 @@
             context.save();
             kin.beginRegion();
             context.beginPath();
-            context.fillStyle = "Blue";
+            context.fillStyle = "Red";
             kin.addRegionEventListener("mouseover", function () { context.fillStyle = "Red"; });
             kin.addRegionEventListener("mouseout", function () { oscillate = false; });
             // x, y, radius, start-angle, end-angle
@@ -270,7 +265,7 @@
         }
         function drawForearm(angle) {
             context.save();
-            this.angle = angle % 90;
+            this.angle = angle;
             context.translate(this.length, 0);
             context.rotate(Math.PI / 180 * this.angle);
             context.lineTo(this.length, 0);
