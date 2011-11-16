@@ -14,9 +14,10 @@
     <script>
         var kin;
         var figure;
-        var armAngle = 10;
+        var armAngle = 0;
         var legAngle = 65;
         var stroke = true;
+        var armStroke = true;
         var bodyX = 0;
         var bodyY = 40;
         var headSize = 50;
@@ -115,14 +116,19 @@
                 waveHeight = waveHeight + .25;
             }
 
-            if (kin.frame != 0 && kin.frame < 400) {
+            if (kin.frame != 0) {
                 if (legAngle > 120 || legAngle < 65)
                     stroke = !stroke;
                 if (legAngle <= 120 && stroke)
                     legAngle += 1;
                 if (legAngle >= 65 && !stroke)
                     legAngle -= 1;
-                armAngle = kin.frame;
+                if (armAngle > 100 || armAngle < 0)
+                    armStroke = !armStroke;
+                if (armAngle <= 100 && armStroke)
+                    armAngle += 2;
+                if (armAngle >= 0 && !armStroke)
+                    armAngle -= 2;
             }
             if (kin.frame >= 400) {
                 kin.frame = 1;
@@ -205,13 +211,13 @@
             context.save(); // State 2
             //LEFT ARM translate, etc
             context.translate(0, bodyHeight / 2.6);
-            context.rotate(Math.PI / 180 * armAngle);
+            context.rotate(degToRad(armAngle));
             this.leftArm.bicep.draw();
             this.leftArm.forearm.draw(armAngle / 2);
 
             // RIGHT ARM
-            armAngle = -armAngle;
-            context.rotate(Math.PI / 180 * -armAngle);
+            //armAngle = -armAngle;
+            context.rotate(degToRad(armAngle));
             this.rightArm.bicep.draw();
             this.rightArm.forearm.draw(armAngle / 2);
             context.restore(); // State 2
