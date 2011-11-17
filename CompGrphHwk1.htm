@@ -14,6 +14,8 @@
     <script>
         var kin;
         var figure;
+        var figPos;
+        var swimPos = (Math.PI / 2);
         var armAngle = 0;
         var legAngle = 65;
         var stroke = true;
@@ -31,6 +33,7 @@
             canvas = document.getElementById("stickScene");
             context = canvas.getContext("2d");
             swimHeight = canvas.height / 2;
+            figPos = canvas.width / 2;
             document.addEventListener('mousedown', mouseClickHandler, false);
             kin = new Kinetic_2d("stickScene");
             kin.setDrawStage(function () {
@@ -99,6 +102,11 @@
             context.lineJoin = 'miterLimit';
             figure = new stickFigure();
 
+            if (kin.frame % 2)
+                figPos += 5;
+            else
+                figPos -= 1;
+
             switch (kin.frame % 20) {
                 case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
                     swimHeight = swimHeight + 2;
@@ -110,10 +118,18 @@
             if (kin.frame >= 100 && kin.frame < 200) {
                 swimHeight = swimHeight + 1;
                 waveHeight = waveHeight - .25;
+                if (kin.frame < 150)
+                    swimPos += .01;
+                else
+                    swimPos -= .01;
             }
             if (kin.frame >= 200 && kin.frame < 300) {
                 swimHeight = swimHeight - 1;
                 waveHeight = waveHeight + .25;
+                if (kin.frame < 250)
+                    swimPos -= .01;
+                else
+                    swimPos += .01;
             }
 
             if (kin.frame != 0) {
@@ -132,6 +148,7 @@
             }
             if (kin.frame >= 400) {
                 kin.frame = 1;
+                figPos = -60;
             }
             
             figure.draw();
@@ -203,8 +220,8 @@
         /**** START FIGURE DRAWING ****/
         function drawFigure() {
             context.save(); // State 1
-            context.translate(canvas.width / 2, swimHeight);
-            context.rotate(Math.PI / 2)
+            context.translate(figPos, swimHeight);
+            context.rotate(swimPos);
             this.body.draw();
             this.head.draw();
 
@@ -216,7 +233,6 @@
             this.leftArm.forearm.draw(armAngle / 2);
 
             // RIGHT ARM
-            //armAngle = -armAngle;
             context.rotate(degToRad(armAngle));
             this.rightArm.bicep.draw();
             this.rightArm.forearm.draw(armAngle / 2);
@@ -226,7 +242,7 @@
             // LEFT LEG translate, etc
             context.translate(0, bodyHeight);
 
-            context.rotate(/*Math.PI / 180 */ degToRad(-legAngle));
+            context.rotate(degToRad(-legAngle));
             this.leftLeg.thigh.draw();
             this.leftLeg.calf.draw(legAngle / 2);
             context.restore(); // State 3.1
@@ -234,7 +250,7 @@
             context.save(); // State 3.2
             // RIGHT LEG translate, etc
             context.translate(0, bodyHeight);
-            context.rotate(/*Math.PI / 180 */ degToRad(legAngle));
+            context.rotate(degToRad(legAngle));
             this.rightLeg.thigh.draw();
             this.rightLeg.calf.draw(legAngle / 2);
             context.restore(); // State 3.2
@@ -254,8 +270,6 @@
             kin.beginRegion();
             context.beginPath();
             context.fillStyle = "Red";
-            kin.addRegionEventListener("mouseover", function () { context.fillStyle = "Red"; });
-            kin.addRegionEventListener("mouseout", function () { oscillate = false; });
             // x, y, radius, start-angle, end-angle
             context.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
             context.fill();
