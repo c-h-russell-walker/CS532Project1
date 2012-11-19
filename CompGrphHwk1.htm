@@ -41,9 +41,17 @@
                 context.lineWidth = "4";
                 kin.clear();
                 
-                run();
-                drawWaves();
+				run();
             });
+        }
+		
+		function mouseClickHandler(event) {
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+            if (!kin.animating)
+				kin.startAnimation();
+			else
+				kin.stopAnimation();
         }
 
         function degToRad(degrees) {
@@ -51,7 +59,7 @@
         }
 
         function drawWaves() {
-            context.save();
+			context.save();
             context.moveTo(0, swimHeight);
             
             // sine path from 0 to rads radians scales by sx
@@ -71,16 +79,10 @@
                 px += (180.0 / (Math.PI)) * dx;
                 py = -30 * y  + (kin.frame % 2 * 3);
 
-                context.lineTo(px - kin.frame, py + waveHeight * 6.5);
+                context.lineTo(px, py + waveHeight * 6.5);
             }
             context.stroke();
             context.restore();
-        }
-
-        function mouseClickHandler(event) {
-            mouseX = event.clientX;
-            mouseY = event.clientY;
-            kin.startAnimation();
         }
 
         function cartesianToPolar(x, y) {
@@ -97,61 +99,66 @@
         }
 
         function run() {
-
+			
             context.fillText(kin.frame.toString(), 10, 10);
             context.lineJoin = 'miterLimit';
             figure = new stickFigure();
+			
+			if (kin.animating) {
+				if (kin.frame % 2)
+					figPos += 5;
+				else
+					figPos -= 1;
+			
+				switch (kin.frame % 20) {
+					case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
+						swimHeight = swimHeight + 2;
+						break;
+					case 10, 11, 12, 13, 14, 15, 16, 17, 18, 19:
+						swimHeight = swimHeight - 2;
+						break;
+				}
+				if (kin.frame >= 100 && kin.frame < 200) {
+					// bubbles
+					swimHeight = swimHeight + 1;
+					waveHeight = waveHeight - .25;
+					if (kin.frame < 150)
+						swimPos += .01;
+					else
+						swimPos -= .01;
+				}
+				if (kin.frame >= 200 && kin.frame < 300) {
+					// bubbles
+					swimHeight = swimHeight - 1;
+					waveHeight = waveHeight + .25;
+					if (kin.frame < 250)
+						swimPos -= .01;
+					else
+						swimPos += .01;
+				}
 
-            if (kin.frame % 2)
-                figPos += 5;
-            else
-                figPos -= 1;
-
-            switch (kin.frame % 20) {
-                case 0, 1, 2, 3, 4, 5, 6, 7, 8, 9:
-                    swimHeight = swimHeight + 2;
-                    break;
-                case 10, 11, 12, 13, 14, 15, 16, 17, 18, 19:
-                    swimHeight = swimHeight - 2;
-                    break;
-            }
-            if (kin.frame >= 100 && kin.frame < 200) {
-                swimHeight = swimHeight + 1;
-                waveHeight = waveHeight - .25;
-                if (kin.frame < 150)
-                    swimPos += .01;
-                else
-                    swimPos -= .01;
-            }
-            if (kin.frame >= 200 && kin.frame < 300) {
-                swimHeight = swimHeight - 1;
-                waveHeight = waveHeight + .25;
-                if (kin.frame < 250)
-                    swimPos -= .01;
-                else
-                    swimPos += .01;
-            }
-
-            if (kin.frame != 0) {
-                if (legAngle > 120 || legAngle < 65)
-                    stroke = !stroke;
-                if (legAngle <= 120 && stroke)
-                    legAngle += 1;
-                if (legAngle >= 65 && !stroke)
-                    legAngle -= 1;
-                if (armAngle > 100 || armAngle < 0)
-                    armStroke = !armStroke;
-                if (armAngle <= 100 && armStroke)
-                    armAngle += 2;
-                if (armAngle >= 0 && !armStroke)
-                    armAngle -= 2;
-            }
-            if (kin.frame >= 400) {
-                kin.frame = 1;
-                figPos = -60;
-            }
-            
-            figure.draw();
+				if (kin.frame != 0) {
+					if (legAngle > 120 || legAngle < 65)
+						stroke = !stroke;
+					if (legAngle <= 120 && stroke)
+						legAngle += 1;
+					if (legAngle >= 65 && !stroke)
+						legAngle -= 1;
+					if (armAngle > 100 || armAngle < 0)
+						armStroke = !armStroke;
+					if (armAngle <= 100 && armStroke)
+						armAngle += 2;
+					if (armAngle >= 0 && !armStroke)
+						armAngle -= 2;
+				}
+				if (kin.frame >= 400) {
+					kin.frame = 1;
+					figPos = -60;
+				}
+			}
+			
+			figure.draw();
+			drawWaves();
         }
 
         /**** Stick Figure Objects ****/
@@ -267,7 +274,6 @@
         }
         function drawHead() {
             context.save();
-            kin.beginRegion();
             context.beginPath();
             context.fillStyle = "Red";
             // x, y, radius, start-angle, end-angle
@@ -275,7 +281,6 @@
             context.fill();
             context.closePath();
             context.stroke();
-            kin.closeRegion();
             context.restore();
         }
         function drawBicep() {
